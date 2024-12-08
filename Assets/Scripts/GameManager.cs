@@ -10,7 +10,7 @@ public class GameManager : NetworkBehaviour
     public TextMeshProUGUI textTime;
     public TextMeshProUGUI textTimeTag;
     public TextMeshProUGUI textEndGame;
-    public float playTime = 120;
+    public float currentTime = 120;
     public List<Player> players = new List<Player>();
     public NetworkObject speedPref;
     public float timeSpawnSpeed = 15;
@@ -18,6 +18,7 @@ public class GameManager : NetworkBehaviour
     public const float SPEED_UP = 1.3f;
     public const float START_SPEED = 3;
     public const float TIME_SPEED_UP = 5;
+    public const float PLAY_TIME = 120;
     private void Awake()
     {
         Instance = this;
@@ -47,18 +48,19 @@ public class GameManager : NetworkBehaviour
     [ClientRpc]
     private void StartCoundDownTimeClientRpc()
     {
+        currentTime = PLAY_TIME;
         InvokeRepeating("CountDownTime", 1, 1);
     }
 
     private void CountDownTime()
     {
-        if (playTime > 0)
+        if (currentTime > 0)
         {
-            playTime--;
+            currentTime--;
         }
         else
         {
-            playTime = 0;
+            currentTime = 0;
             CancelInvoke("CountDownTime");
             EndGame();
         }
@@ -67,7 +69,7 @@ public class GameManager : NetworkBehaviour
 
     private void SetTextTime()
     {
-        textTime.text = playTime.ToString();
+        textTime.text = currentTime.ToString();
     }
 
     private void Update()
@@ -77,7 +79,7 @@ public class GameManager : NetworkBehaviour
 
     private void UpdateTimeTag()
     {
-        if (playTime < 120)
+        if (currentTime < PLAY_TIME && currentTime > 0)
         {
             string timeTag = string.Empty;
             for (int i = 0; i < players.Count; i++)
