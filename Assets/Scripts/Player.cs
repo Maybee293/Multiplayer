@@ -17,6 +17,12 @@ public class Player : NetworkBehaviour
     /// 
     public TextMeshPro textPlayerName;
     public bool isIT = false;
+    public NetworkVariable<float> timeIT = new NetworkVariable<float>(0);
+
+    private Player other = null;
+    public bool delayCollision = false;
+    private float timeDelayCollision = 0.2f;
+
     private void Start()
     {
         GameManager.Instance.AddPlayer(this);
@@ -41,16 +47,22 @@ public class Player : NetworkBehaviour
     private float moveSpeed = 3;
     private void Update()
     {
-        if (!IsOwner) return;
+        if (IsOwner)
+        {
+            Vector3 moveDir = Vector3.zero;
 
-        Vector3 moveDir = Vector3.zero;
+            if (Input.GetKey(KeyCode.W)) moveDir.z = +1f;
+            if (Input.GetKey(KeyCode.S)) moveDir.z = -1f;
+            if (Input.GetKey(KeyCode.A)) moveDir.x = -1f;
+            if (Input.GetKey(KeyCode.D)) moveDir.x = +1f;
 
-        if (Input.GetKey(KeyCode.W)) moveDir.z = +1f;
-        if (Input.GetKey(KeyCode.S)) moveDir.z = -1f;
-        if (Input.GetKey(KeyCode.A)) moveDir.x = -1f;
-        if (Input.GetKey(KeyCode.D)) moveDir.x = +1f;
+            transform.position += moveDir * moveSpeed * Time.deltaTime;
+        }
 
-        transform.position += moveDir * moveSpeed * Time.deltaTime;
+        if (IsHost)
+        {
+            if (isIT) timeIT.Value += Time.deltaTime;
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -76,11 +88,9 @@ public class Player : NetworkBehaviour
         transform.position = GetRandomPositionOnXYPlane();
     }
 
-    private Player other = null;
     private void OnCollisionEnter(Collision collision)
     {
         if (!NetworkManager.Singleton.IsHost) return;
-        Debug.Log($"OnCollisionEnter {NetworkObjectId} {isIT}");
         other = collision.gameObject.GetComponent<Player>();
 
         if (!delayCollision)
@@ -90,7 +100,6 @@ public class Player : NetworkBehaviour
                 delayCollision = true;
                 other.delayCollision = true;
                 Invoke("DelayCollision", timeDelayCollision);
-                Debug.Log($"OnCollisionEnter {NetworkObjectId} {other.NetworkObjectId}");
                 other.isIT = true;
                 other.ChangeColorClientRpc(Color.red);
 
@@ -100,16 +109,13 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public bool delayCollision = false;
-    private float timeDelayCollision = 0.2f;
-
     private void DelayCollision()
     {
         delayCollision = false;
         other.delayCollision = false;
         other = null;
     }
-    
+
     [ClientRpc]
     public void ChangeColorClientRpc(Color color)
     {
