@@ -4,6 +4,7 @@ using UnityEngine;
 public class Manager : MonoBehaviour
 {
     NetworkManager networkManager = null;
+    public const float LIMIT_PLAYER_IN_ROOM = 4;
     private void OnGUI()
     {
         GUILayout.BeginArea(new Rect(10, 10, 300, 300));
@@ -85,7 +86,10 @@ public class Manager : MonoBehaviour
 
     void OnClientConnectedCallback(ulong clientId)
     {
-        Debug.Log("OnClientConnectedCallback");
+        if (networkManager.ConnectedClientsList.Count > LIMIT_PLAYER_IN_ROOM)
+        {
+            networkManager.DisconnectClient(clientId);
+        }
     }
 
     void OnServerStarted()
@@ -100,12 +104,12 @@ public class Manager : MonoBehaviour
 
     void OnTransportFailure()
     {
-        Debug.Log("ApprovalCheck");
+        Debug.Log("OnTransportFailure");
     }
 
     void OnServerStopped(bool _) // we don't need this parameter as the ConnectionState already carries the relevant information
     {
-        Debug.Log("ApprovalCheck");
+        Debug.Log("OnServerStopped");
     }
 
     public void StartClientLobby(string playerName)
