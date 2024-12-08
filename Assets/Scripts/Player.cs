@@ -23,6 +23,9 @@ public class Player : NetworkBehaviour
     public bool delayCollision = false;
     private float timeDelayCollision = 0.2f;
 
+    private bool isSpeedUp = false;
+    private float timeSpeedUpCountDown;
+    private NetworkVariable<float> moveSpeed = new NetworkVariable<float>(3);
     private void Start()
     {
         GameManager.Instance.AddPlayer(this);
@@ -44,7 +47,6 @@ public class Player : NetworkBehaviour
         return new Vector3(Random.Range(0f, 5f), 0, Random.Range(0f, 5f));
     }
 
-    private float moveSpeed = 3;
     private void Update()
     {
         if (IsOwner)
@@ -56,7 +58,19 @@ public class Player : NetworkBehaviour
             if (Input.GetKey(KeyCode.A)) moveDir.x = -1f;
             if (Input.GetKey(KeyCode.D)) moveDir.x = +1f;
 
-            transform.position += moveDir * moveSpeed * Time.deltaTime;
+            transform.position += moveDir * moveSpeed.Value * Time.deltaTime;
+
+            if (isSpeedUp)
+            {
+                if (timeSpeedUpCountDown > 0)
+                {
+                    timeSpeedUpCountDown -= Time.deltaTime;
+                }
+                else
+                {
+                    ResetSpeed();
+                }
+            }
         }
 
         if (IsHost)
@@ -121,6 +135,25 @@ public class Player : NetworkBehaviour
     {
         Debug.Log($"ChangeColorClientRpc {NetworkObjectId}" + color.ToString());
         SetColor(color);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!NetworkManager.Singleton.IsHost) return;
+        if (other.gameObject.tag == "Speed")
+        {
+            isSpeedUp = true;
+            moveSpeed.Value = moveSpeed.Value * GameManager.SPEED_UP;
+            timeSpeedUpCountDown = GameManager.TIME_SPEED_UP;
+            other.GetComponent<NetworkObject>().Despawn();
+        }
+    }
+
+    private void ResetSpeed()
+    {
+        isSpeedUp = false;
+        timeSpeedUpCountDown = 0;
+        moveSpeed.Value = GameManager.START_SPEED;
     }
 }
 

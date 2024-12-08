@@ -532,6 +532,8 @@ MonoBehaviour:
   textEndGame: {fileID: 1904947505}
   playTime: 120
   players: []
+  speedPref: {fileID: 2677349338248490189, guid: ef09144b8d5418e4e9d1e333fcaac92c, type: 3}
+  timeSpawnSpeed: 15
 --- !u!4 &556568973
 Transform:
   m_ObjectHideFlags: 0
@@ -699,7 +701,8 @@ MonoBehaviour:
     NetworkTransport: {fileID: 1114774666}
     PlayerPrefab: {fileID: 3439633038736912633, guid: 398aad09d8b2a47eba664a076763cdcc, type: 3}
     Prefabs:
-      NetworkPrefabsLists: []
+      NetworkPrefabsLists:
+      - {fileID: 11400000, guid: 140416de10f2b424c94952011d59b93b, type: 2}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0

@@ -12,6 +12,12 @@ public class GameManager : NetworkBehaviour
     public TextMeshProUGUI textEndGame;
     public float playTime = 120;
     public List<Player> players = new List<Player>();
+    public NetworkObject speedPref;
+    public float timeSpawnSpeed = 15;
+
+    public const float SPEED_UP = 1.3f;
+    public const float START_SPEED = 3;
+    public const float TIME_SPEED_UP = 5;
     private void Awake()
     {
         Instance = this;
@@ -27,6 +33,7 @@ public class GameManager : NetworkBehaviour
         if (!NetworkManager.Singleton.IsHost) return;
         RandomIT();
         StartCoundDownTimeClientRpc();
+        InvokeRepeating("SpawnSpeed", 0, timeSpawnSpeed);
     }
 
     public void RandomIT()
@@ -84,7 +91,7 @@ public class GameManager : NetworkBehaviour
     private void EndGame()
     {
         Player winPlayer = GetPlayerWinGame();
-        if (winPlayer != null) 
+        if (winPlayer != null)
         {
             textEndGame.text = $"Player {winPlayer.NetworkObjectId} win";
         }
@@ -101,5 +108,13 @@ public class GameManager : NetworkBehaviour
             }
         }
         return winPlayer;
+    }
+
+    private void SpawnSpeed()
+    {
+        NetworkObject instance = Instantiate(speedPref);
+        NetworkObject instanceNetworkObject = instance.GetComponent<NetworkObject>();
+        instanceNetworkObject.Spawn();
+        instanceNetworkObject.transform.position = new Vector3(Random.Range(0f, 5f), 0, Random.Range(0f, 5f));
     }
 }
